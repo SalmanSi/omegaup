@@ -77,10 +77,7 @@ namespace OmegaUp\Controllers;
 class Contest extends \OmegaUp\Controllers\Controller {
     const SHOW_INTRO = true;
     const MAX_CONTEST_LENGTH_SECONDS = 2678400; // 31 days
-    const CONTEST_LIST_PAGE_SIZE omegaUp ephemeral grader α
-    ￼
-    ￼Run
-    code= 10;
+    const CONTEST_LIST_PAGE_SIZE =10;
 
     /**
      * Returns a list of contests
@@ -2371,8 +2368,10 @@ class Contest extends \OmegaUp\Controllers\Controller {
             'admission_mode' => 'private', // Cloned contests start in private
                                            // admission_mode
             'check_plagiarism' => $originalContest->check_plagiarism,
-        ]);
+            'languages' => $originalContest->languages, // add langauges to cloned contest
 
+        ]);
+        
         \OmegaUp\DAO\DAO::transBegin();
         try {
             // Create the contest
@@ -2387,7 +2386,6 @@ class Contest extends \OmegaUp\Controllers\Controller {
                 $originalContest->problemset_id,
                 needSubmissions: false
             );
-
             foreach ($problemsetProblems as $problemsetProblem) {
                 $problem = new \OmegaUp\DAO\VO\Problems([
                     'problem_id' => $problemsetProblem['problem_id'],
@@ -2404,19 +2402,6 @@ class Contest extends \OmegaUp\Controllers\Controller {
                     $problemsetProblem['order'] ?: 1
                 );
             }
-
-            // Copy allowed programming languages
-            $originalLanguages = \OmegaUp\DAO\ProblemsetLanguages::getLanguagesForProblemset(
-                $originalContest->problemset_id
-            );
-            foreach ($originalLanguages as $language) {
-                \OmegaUp\DAO\ProblemsetLanguages::add(
-                    $contest->problemset_id,
-                    $language
-                );
-            }
-
-
             \OmegaUp\DAO\DAO::transEnd();
         } catch (\Exception $e) {
             \OmegaUp\DAO\DAO::transRollback();
